@@ -1,0 +1,19 @@
+[project]
+name = "password-manager"
+version = "0.1.0"
+description = "A simple Python-based password manager with **Argon2id** encryption, password generation, a command-line interface, and a graphical user interface."
+readme = "README.md"
+authors = []
+requires-python = ">=3.13"
+dependencies = [
+    "cryptography>=45.0.2",
+    "pyqt6>=6.9.0",
+]
+
+[project.scripts]
+password-manager-cli = "password_manager.main_cli:main"
+password-manager-gui = "password_manager.main_gui:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
