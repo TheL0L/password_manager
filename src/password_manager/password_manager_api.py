@@ -216,10 +216,6 @@ class PasswordManagerAPI:
         if self.encryption_handler.derive_key(old_master_password, stored_salt) != stored_derived_key:
              return False, "Incorrect current master password."
 
-        strength_check = VerificationUtils.check_password_strength(new_master_password)
-        if not strength_check['is_strong']:
-            return False, "New master password is too weak. " + " ".join(strength_check['feedback'])
-
         if new_master_password == old_master_password:
             return False, "New master password cannot be the same as the old one."
 
