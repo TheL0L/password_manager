@@ -2,7 +2,6 @@
 Dashboard widget for managing password entries.
 """
 
-from typing import List, Dict
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTableWidget, QTableWidgetItem, QHeaderView, QLineEdit, QComboBox,
@@ -89,18 +88,26 @@ class DashboardWidget(QWidget):
         search_layout.addWidget(self.filter_combo)
         
         # Clear search button
-        self.clear_search_button = QPushButton("Clear")
-        self.clear_search_button.setMinimumHeight(30)
+        self.clear_search_button = QPushButton("🗑 Clear")
+        self.clear_search_button.setMinimumHeight(32)
         self.clear_search_button.setStyleSheet("""
             QPushButton {
-                background-color: #666;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                padding: 5px 10px;
+                background-color: #f8f9fa;
+                color: #6c757d;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 500;
+                padding: 6px 12px;
             }
             QPushButton:hover {
-                background-color: #555;
+                background-color: #e9ecef;
+                color: #495057;
+                border-color: #adb5bd;
+            }
+            QPushButton:pressed {
+                background-color: #dee2e6;
+                color: #343a40;
             }
         """)
         search_layout.addWidget(self.clear_search_button)
@@ -160,12 +167,13 @@ class DashboardWidget(QWidget):
             }
         """)
 
-        
         # Column widths
         header = self.entries_table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # ID
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # Address/Name
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)  # Actions
+        self.entries_table.setColumnWidth(2, 220)  # Ensure actions column is wide enough
+        
         
         # Hide ID column by default
         self.entries_table.hideColumn(0)
@@ -185,40 +193,60 @@ class DashboardWidget(QWidget):
     def _create_action_buttons(self, parent_layout):
         """Create the action buttons section."""
         actions_layout = QHBoxLayout()
-        actions_layout.setSpacing(10)
+        actions_layout.setSpacing(8)
+        actions_layout.setContentsMargins(0, 10, 0, 10)
         
-        # Add entry button
-        self.add_entry_button = QPushButton("➕Add New Entry")
-        self.add_entry_button.setMinimumHeight(40)
-        self.add_entry_button.setStyleSheet("""
+        # Common button styles for main action buttons
+        main_button_style = """
             QPushButton {
-                background-color: #107c10;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-weight: bold;
-                padding: 10px 20px;
+                border: 2px solid #e0e0e0;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                padding: 12px 24px;
+                min-height: 44px;
             }
             QPushButton:hover {
-                background-color: #0e6e0e;
+                border-color: #0078d4;
+                background-color: #f0f8ff;
+                transform: translateY(-1px);
+            }
+            QPushButton:pressed {
+                background-color: #e0e0e0;
+                border-color: #0078d4;
+                transform: translateY(0px);
+            }
+            QPushButton:disabled {
+                background-color: #f5f5f5;
+                color: #999;
+                border-color: #e0e0e0;
+            }
+        """
+        
+        # Add entry button
+        self.add_entry_button = QPushButton("➕ Add New Entry")
+        self.add_entry_button.setStyleSheet(main_button_style + """
+            QPushButton {
+                background-color: #d4edda;
+                color: #155724;
+            }
+            QPushButton:hover {
+                background-color: #c3e6cb;
+                color: #0f5132;
             }
         """)
         actions_layout.addWidget(self.add_entry_button)
         
         # Generate password button
-        self.generate_password_button = QPushButton("Generate Password")
-        self.generate_password_button.setMinimumHeight(40)
-        self.generate_password_button.setStyleSheet("""
+        self.generate_password_button = QPushButton("🔐 Generate Password")
+        self.generate_password_button.setStyleSheet(main_button_style + """
             QPushButton {
-                background-color: #0078d4;
-                color: white;
-                border: none;
-                border-radius: 5px;
-                font-weight: bold;
-                padding: 10px 20px;
+                background-color: #e3f2fd;
+                color: #1976d2;
             }
             QPushButton:hover {
-                background-color: #106ebe;
+                background-color: #bbdefb;
+                color: #1565c0;
             }
         """)
         # actions_layout.addWidget(self.generate_password_button)
@@ -242,7 +270,7 @@ class DashboardWidget(QWidget):
         self.entries_table.customContextMenuRequested.connect(self._show_context_menu)
         self.entries_table.itemDoubleClicked.connect(self._on_item_double_clicked)
     
-    def update_entries(self, entries: list[Dict]):
+    def update_entries(self, entries: list[dict]):
         """Update the entries table with new data."""
         self.entries = entries
         self._apply_search_filter()
@@ -264,7 +292,7 @@ class DashboardWidget(QWidget):
     def _populate_table(self):
         """Populate the table with filtered entries."""
         self.entries_table.setRowCount(len(self.filtered_entries))
-        
+        min_row_height = 50  # Ensure enough height for buttons
         for row, entry in enumerate(self.filtered_entries):
             # ID column
             id_item = QTableWidgetItem(str(entry.get('id', '')))
@@ -282,85 +310,100 @@ class DashboardWidget(QWidget):
             # Actions column
             actions_widget = self._create_actions_widget(entry.get('id'), entry)
             self.entries_table.setCellWidget(row, 2, actions_widget)
+            self.entries_table.setRowHeight(row, min_row_height)
     
-    def _create_actions_widget(self, entry_id: int, entry: Dict) -> QWidget:
+    def _create_actions_widget(self, entry_id: int, entry: dict) -> QWidget:
         """Create the actions widget for a table row."""
         widget = QWidget()
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(2, 2, 2, 2)
-        layout.setSpacing(2)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(6)
         
-        # View button
-        view_button = QPushButton("👁")
-        view_button.setToolTip("View entry details")
-        view_button.setFixedSize(30, 25)
-        view_button.setStyleSheet("""
+        # Common button styles
+        base_style = """
             QPushButton {
-                background-color: #0078d4;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                font-size: 12px;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 500;
+                
+                min-height: 28px;
+                min-width: 32px;
             }
             QPushButton:hover {
-                background-color: #106ebe;
+                border-color: #0078d4;
+                background-color: #f0f8ff;
+            }
+            QPushButton:pressed {
+                background-color: #e0e0e0;
+                border-color: #0078d4;
+            }
+            QPushButton:disabled {
+                background-color: #f5f5f5;
+                color: #999;
+                border-color: #e0e0e0;
+            }
+        """
+        
+        # View button
+        view_button = QPushButton("View")
+        view_button.setToolTip("View entry details")
+        view_button.setStyleSheet(base_style + """
+            QPushButton {
+                background-color: #f8f9fa;
+                color: #495057;
+            }
+            QPushButton:hover {
+                background-color: #e3f2fd;
+                color: #1976d2;
             }
         """)
         view_button.clicked.connect(lambda: self._on_view_entry_clicked(entry_id))
         layout.addWidget(view_button)
         
         # Edit button
-        edit_button = QPushButton("✏")
+        edit_button = QPushButton("Edit")
         edit_button.setToolTip("Edit entry")
-        edit_button.setFixedSize(30, 25)
-        edit_button.setStyleSheet("""
+        edit_button.setStyleSheet(base_style + """
             QPushButton {
-                background-color: #ffb900;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                font-size: 12px;
+                background-color: #fff3cd;
+                color: #856404;
             }
             QPushButton:hover {
-                background-color: #e6a700;
+                background-color: #ffeaa7;
+                color: #6c5ce7;
             }
         """)
         edit_button.clicked.connect(lambda: self._on_edit_entry_clicked(entry_id))
         layout.addWidget(edit_button)
         
         # Copy password button
-        copy_button = QPushButton("📋")
+        copy_button = QPushButton("Copy")
         copy_button.setToolTip("Copy password to clipboard")
-        copy_button.setFixedSize(30, 25)
-        copy_button.setStyleSheet("""
+        copy_button.setStyleSheet(base_style + """
             QPushButton {
-                background-color: #107c10;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                font-size: 12px;
+                background-color: #d4edda;
+                color: #155724;
             }
             QPushButton:hover {
-                background-color: #0e6e0e;
+                background-color: #c3e6cb;
+                color: #0f5132;
             }
         """)
         copy_button.clicked.connect(lambda: self._on_copy_password_clicked(entry))
         layout.addWidget(copy_button)
         
         # Delete button
-        delete_button = QPushButton("🗑")
+        delete_button = QPushButton("Delete")
         delete_button.setToolTip("Delete entry")
-        delete_button.setFixedSize(30, 25)
-        delete_button.setStyleSheet("""
+        delete_button.setStyleSheet(base_style + """
             QPushButton {
-                background-color: #d13438;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                font-size: 12px;
+                background-color: #f8d7da;
+                color: #721c24;
             }
             QPushButton:hover {
-                background-color: #b91d47;
+                background-color: #f5c6cb;
+                color: #491217;
             }
         """)
         delete_button.clicked.connect(lambda: self._on_delete_entry_clicked(entry_id))
@@ -440,7 +483,7 @@ class DashboardWidget(QWidget):
             except ValueError:
                 pass
     
-    def _copy_password_to_clipboard(self, entry: Dict):
+    def _copy_password_to_clipboard(self, entry: dict):
         """Copy password to clipboard."""
         password = entry.get('Password', '')
         if password:
@@ -455,7 +498,7 @@ class DashboardWidget(QWidget):
         # This could be connected to a status bar or notification system
         pass
     
-    def _on_copy_password_clicked(self, entry: Dict):
+    def _on_copy_password_clicked(self, entry: dict):
         """Handle copy password button click."""
         self._copy_password_to_clipboard(entry)
     
