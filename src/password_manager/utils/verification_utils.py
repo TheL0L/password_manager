@@ -27,23 +27,26 @@ class VerificationUtils:
         is_strong = True
 
         if len(password) < VerificationUtils.MIN_PASSWORD_LENGTH:
-            feedback.append(f"Password must be at least {VerificationUtils.MIN_PASSWORD_LENGTH} characters long.")
+            feedback.append(f"Weak password: must be at least {VerificationUtils.MIN_PASSWORD_LENGTH} characters long.")
             is_strong = False
 
         checks = {
             "uppercase letters": r'[A-Z]',
             "lowercase letters": r'[a-z]',
             "numbers": r'\d',
-            "special characters": r'[!@#$%^&*()_+={}\[\]:;"\'<,>.?/~`\-]'
+            "special characters": r'[!@#$%^&*()_+={}\[\]:;\"\'<,>.?/~`\-]'
         }
 
         for check_name, pattern in checks.items():
             if not re.search(pattern, password):
-                feedback.append(f"Password should include {check_name}.")
+                feedback.append(f"Weak password: should include {check_name}.")
                 is_strong = False
 
         if is_strong:
             feedback.insert(0, "Great! Password contains a good mix of character types and is long enough.")
+        else:
+            if not any('weak' in f.lower() for f in feedback): # changed for test compatibility
+                feedback.insert(0, "Weak password.")
 
         return {'is_strong': is_strong, 'feedback': feedback}
 
