@@ -90,6 +90,7 @@ class MainWindow(QMainWindow):
         self.change_password_action.setShortcut("Ctrl+P")
         self.change_password_action.setStatusTip("Change master password")
         self.change_password_action.triggered.connect(self._on_change_password_requested)
+        self.change_password_action.setEnabled(False)
         self.user_menu.addAction(self.change_password_action)
         
         # Logout action
@@ -97,6 +98,7 @@ class MainWindow(QMainWindow):
         self.logout_action.setShortcut("Ctrl+L")
         self.logout_action.setStatusTip("Logout from the application")
         self.logout_action.triggered.connect(self._on_logout_requested)
+        self.logout_action.setEnabled(False) 
         self.user_menu.addAction(self.logout_action)
         
         # Tools menu
@@ -154,6 +156,9 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage("Please login or register")
         # Hide user menu when showing auth view
         self.user_menu.setVisible(False)
+        # Disable user menu actions to prevent keyboard shortcuts when logged out
+        self.change_password_action.setEnabled(False)
+        self.logout_action.setEnabled(False)
         # Clear any stored state
         self.current_username = None
         self.current_entries = []
@@ -164,6 +169,9 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage(f"Welcome, {self.current_username or 'User'}!")
         # Show user menu when showing dashboard view
         self.user_menu.setVisible(True)
+        # Enable user menu actions to allow keyboard shortcuts when logged in
+        self.change_password_action.setEnabled(True)
+        self.logout_action.setEnabled(True)
     
     # Signal handlers for auth widget
     def _on_login_requested(self, username: str, password: str):
@@ -221,11 +229,21 @@ class MainWindow(QMainWindow):
     
     def _on_logout_requested(self):
         """Handle logout request from menu."""
+        # Additional security check - ensure user is logged in
+        if not self.controller or not self.controller.is_logged_in():
+            self._show_error_message("Authentication Required", "You must be logged in to logout.")
+            return
+            
         if self.controller:
             self.controller.logout_user()
     
     def _on_change_password_requested(self):
         """Handle change password request from menu."""
+        # Additional security check - ensure user is logged in
+        if not self.controller or not self.controller.is_logged_in():
+            self._show_error_message("Authentication Required", "You must be logged in to change your password.")
+            return
+            
         dialog = ChangePasswordDialog(self)
         if dialog.exec() == ChangePasswordDialog.DialogCode.Accepted:
             old_password, new_password, confirm_password = dialog.get_passwords()
