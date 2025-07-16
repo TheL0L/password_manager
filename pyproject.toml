@@ -11,8 +11,8 @@ dependencies = [
 ]
 
 [project.scripts]
-password-manager-cli = "password_manager.main_cli:main"
-password-manager-gui = "password_manager.main_gui:main"
+pm-cli = "password_manager.main_cli:main"
+pm-gui = "password_manager.main_gui:main"
 
 [build-system]
 requires = ["hatchling"]

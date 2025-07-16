@@ -40,11 +40,11 @@ uv run pytest
 You can run either the CLI or GUI version of the app using `uv`. Two macros are available for convenience:
 
 ```bash
-uv run password-manager-cli
+uv run pm-cli
 ```
 
 ```bash
-uv run password-manager-gui
+uv run pm-gui
 ```
 
 Or, if you prefer using the scripts directly:
