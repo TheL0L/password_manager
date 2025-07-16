@@ -25,6 +25,16 @@ uv sync
 
 ---
 
+## Running Tests
+
+You can run all the test suites using `uv`:
+
+```bash
+uv run pytest
+```
+
+---
+
 ## Running the Application
 
 You can run either the CLI or GUI version of the app using `uv`. Two macros are available for convenience:
